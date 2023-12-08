@@ -17,7 +17,14 @@ class Program:
             pass
 
         def delete_file():
-            pass
+            file_deletion = input("Please input the filename to be removed: ")
+            if os.path.exists(file_deletion):
+                if file_deletion != "application.py" or file_deletion != "Assignment 4 Report.docx":
+                    os.remove(file_deletion)
+                else:
+                    print("Cannot delete file.")
+            else:
+                print("File does not exist.")
 
         def run():
             while True:
