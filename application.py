@@ -10,104 +10,129 @@ class Program:
     Used to administer user interaction
     """
     def __init__(self):
-        resource = Resource() #! Create an instance of the resource object/class
 
         def showMainMenu():
             """_summary_
             Display the main menu the user will use to
-            interact with to modify or create files
+            interact with to modify or create resources within the library.json
             """
-            library = open('library.json')
-            data = json.load(library)
-            
             while True:
-                os.system("cls")
+                choosing = False
                 user_input = input("Welcome to the Programming Library System\n\n[1] Create\n[2] Read\n[3] Update\n[4] Delete\n\n") 
+                os.system("cls")
+
+                #! WRITE
                 if user_input == "1":
-                    file_name = input("Please input file name: ")
-                    print(resource.create_file(file_name))
+                    choosing = True
+                    while choosing:
+                        resource_type = input("What resource will you be adding to the library:\n\nGuidebooks\nMovies\nGames\n\n")
+                        if resource_type.lower() == "guidebooks":
+                            resource_name = input("Please input the name of the guidebook: ")
+                            resource_year = input("Please input year of publication: ")
+                            resource_author = input("Please input author of the guidebook: ")
+                            new_resource = Resource(resource_name, resource_year, resource_author, "author")
+                            Resource_Manager().add_resource(new_resource)
+                            break
+                        elif resource_type.lower() == "movies":
+                            resource_name = input("Please input the name of the guidebook: ")
+                            resource_year = input("Please input year of publication: ")
+                            resource_author = input("Please input author of the guidebook: ")
+                            new_resource = Resource(resource_name, resource_year, resource_author, "producer")
+                            Resource_Manager().add_resource(new_resource)
+                            break
+                        elif resource_type.lower() == "games":
+                            resource_name = input("Please input the name of the guidebook: ")
+                            resource_year = input("Please input year of publication: ")
+                            resource_author = input("Please input author of the guidebook: ")
+                            new_resource = Resource(resource_name, resource_year, resource_author, "author")
+                            Resource_Manager().add_resource(new_resource)
+                            break
+                        else:
+                            os.system("cls")
+                            print("Invalid resource!")
+
+                #! READ 
                 elif user_input == "2":
-                    file_name = input("Please input the filename to be read: ")
-                    print(resource.read_file(file_name))
+                    resource_type = input("Please choose which resources to view:\n\nGuidebooks\nMovies\nGames\n\n")
+                    os.system("cls")
+                    if resource_type.lower() == "guidebooks" or resource_type.lower() == "movies" or resource_type.lower() == "games":
+                        Resource_Manager().read_resource(resource_type.capitalize())
+                    else:
+                        print("Invalid resource!")
+
+                #! UPDATE/EDIT CHARACTERISTICS
                 elif user_input == "3":
                     file_name = input("Please input the filename to be updated: ")
-                    if resource.check_file() == True:
-                        resource.update_file(file_name)
+                    if resource.check_file(file_name) == True:
+                        file_content = input("Please input what you would like to add the to the file: ")
+                        resource.update_file(file_name, file_content)
+                        os.system("cls")
                     else:
-                        print(file_name)
+                        os.system("cls")
+                        print("File does not exist.")
+
+                #! DELETE
                 elif user_input == "4":
-                    file_name = input("Please input the filename to be removed: ")
-                    resource.delete_file()
-                else:
-                    print("Invalid option")  
+                    resource_type = input("Please choose which resources to view:\n\nGuidebooks\nMovies\nGames\n\n")
+                    name_of_resource = input("Please input the name of the resource: ")
+                    if resource_type.lower() == "guidebooks" or resource_type.lower() == "movies" or resource_type.lower() == "games":
+                        Resource_Manager().delete_resource(resource_type.capitalize(), name_of_resource)
+                    else:
+                        print("Invalid resource!")
                     
         def run(): 
+            os.system("cls")
             showMainMenu() #! Display the main menu
         
         run()
 
 class Resource:
-    """_summary_
-    Class responsible for the operations of file collection, management, etc.
-    """
-    def create_file(self, file_name):
-        """_summary_
-
-        Args:
-            file_name (str): the file name and extension
-
-        Returns:
-            str: returns a statement on whether the file already exists or has been successfully created
-        """
-        if os.path.exists(file_name):
-            return "File already exists!"
-        else:
-            open(file_name, "x")
-            return "File " + file_name + " has been created."
-
-    def read_file(self, file_name):
-        """_summary_
-
-        Args:
-            file_name (str): the file name and extension
-
-        Returns:
-            str: Returns a statement declaring that the desired file does not exist
-        """
-        if os.path.exists(file_name):
-            file_name.read()
-        else:
-            return "File does not exist."
-
-    def check_file(self, file_name):
-        """_summary_
-        Primarily for updating files to check
-        whether or not the desired file exists
-        Args:
-            file_name (str): the file name and extension
-
-        Returns:
-            bool: returns True declaring that the file exists
-            or
-            str:  returns the statement declaring that the file does not exist
-        """
-        if  os.path.exists(file_name):
-            return True
-        else:
-            return "File does not exist."
+    def __init__(self, name, year, creator, creator_type):
+        self.name = name
+        self.year = year
+        self.creator = creator
+        self.creator_type = creator_type
+        self.is_available = True
         
-    def update_file(self, file_name):
-        file_name.write()
-        open(file_name, "w")
-
-    def delete_file(self, file_name):
-        if os.path.exists(file_name):
-            if file_name != "application.py" or file_name != "Assignment 4 Report.docx" or file_name != "library.json":
-                os.remove(file_name)
-            else:
-                return "Cannot delete file."
+class Encoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Resource):
+            return {
+            "name" : obj.name,
+            "year" : obj.year,
+            obj.creator_type : obj.creator,
+            "is_available" : obj.is_available
+            }
         else:
-            return "File does not exist."
+            return super().default(obj)
+
+class Resource_Manager:
+    def read_resource(self, resource):
+        with open("library.json", "r") as f:
+            data = json.load(f)
+
+        for info in data[resource]:
+            if info["is_available"] == True:
+                print(info)
+
+    def add_resource(self, resource):
+        with open("library.json", "w") as f:
+            json.dump(resource, f, cls=Encoder, indent=4)
+
+    def delete_resource(self, resource, name):
+        with open("library.json", "r") as f:
+            data = json.load(f)
+
+            for info in data[resource]:
+                if name == info["name"]:
+                    data[resource].pop(1)
+
+
+            
+        
+
+class Data_Persistence:
+    pass
 
 #! Program Execution
 Program()
