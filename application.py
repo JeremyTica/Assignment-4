@@ -7,20 +7,31 @@ class Program:
     def __init__(self):
         def create_file():
             file_name = input("Please input file name: ")
-            open(file_name, "x")
-            print("File " + file_name + " has been created.")
+            if os.path.exists(file_name):
+                print("File already exists!")
+            else:
+                open(file_name, "x")
+                print("File " + file_name + " has been created.")
 
         def read_file():
-            pass
+            file_name = input("Please input the filename to be read: ")
+            if os.path.exists(file_name):
+                file_name.read()
+            else:
+                print("File does not exist.")
 
         def update_file():
-            pass
+            file_name = input("Please input the filename to be updated: ")
+            if  os.path.exists(file_name):
+                open(file_name, "w")
+            else:
+                print("File does not exist.")
 
         def delete_file():
-            file_deletion = input("Please input the filename to be removed: ")
-            if os.path.exists(file_deletion):
-                if file_deletion != "application.py" or file_deletion != "Assignment 4 Report.docx":
-                    os.remove(file_deletion)
+            file_name = input("Please input the filename to be removed: ")
+            if os.path.exists(file_name):
+                if file_name != "application.py" or file_name != "Assignment 4 Report.docx":
+                    os.remove(file_name)
                 else:
                     print("Cannot delete file.")
             else:
