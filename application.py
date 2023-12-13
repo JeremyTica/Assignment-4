@@ -56,20 +56,42 @@ class Program:
                     resource_type = input("Please choose which resources to view:\n\nGuidebooks\nMovies\nGames\n\n")
                     os.system("cls")
                     if resource_type.lower() == "guidebooks" or resource_type.lower() == "movies" or resource_type.lower() == "games":
-                        Resource_Manager().read_resource(resource_type.capitalize())
+                        resource_content = Resource_Manager().read_resource(resource_type.capitalize())
+                        
+                        for content in resource_content:
+                            for info in content:
+                                if info == "name":
+                                    print("Name:", content[info])
+                                elif info == "year":
+                                    print("Year:", content[info])
+                                elif info == "author" or info == "producer" or info == "studio":
+                                    print(info.capitalize() + ":", content[info])
+                                else:
+                                    print("Available")
+                            print()
                     else:
                         print("Invalid resource!")
 
                 #! UPDATE/EDIT CHARACTERISTICS
                 elif user_input == "3":
-                    file_name = input("Please input the filename to be updated: ")
-                    if resource.check_file(file_name) == True:
-                        file_content = input("Please input what you would like to add the to the file: ")
-                        resource.update_file(file_name, file_content)
+                    while True:
+                        os.system("cls")
+                        resource_options = Resource_Manager().update_resource()
+                        for resources in resource_options:
+                            print(resources)
+                        print()
+                        user_selection = input("Please select a collection of resources that are available:\n\n")
+                        for resources in resource_options:
+                            if resources == user_selection:
+                                break
+                            else:
+                                print("Invalid option!")
+                    resource_type = input("Please input the resource to be updated: ")
+                    if resource_type.lower() == "guidebooks":
                         os.system("cls")
                     else:
                         os.system("cls")
-                        print("File does not exist.")
+                        print("Invalid resource!")
 
                 #! DELETE
                 elif user_input == "4":
@@ -93,6 +115,9 @@ class Resource:
         self.creator = creator
         self.creator_type = creator_type
         self.is_available = True
+
+    def getName(self):
+        return self.name
         
 class Encoder(json.JSONEncoder):
     def default(self, obj):
@@ -105,34 +130,65 @@ class Encoder(json.JSONEncoder):
             }
         else:
             return super().default(obj)
+        
+class Decoder(json.JSONDecoder):
+    def __init__(self, object_hook=None, *args, **kwargs):
+        super().__init__(object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, obj):
+        decoded_object =  Resource(
+            obj.get("name"),
+            obj.get("year"),
+            obj.get("author"),
+            obj.get("is_available")
+        )
+        return decoded_object
 
 class Resource_Manager:
     def read_resource(self, resource):
+        list_of_resources = []
         with open("library.json", "r") as f:
             data = json.load(f)
 
         for info in data[resource]:
             if info["is_available"] == True:
-                print(info)
+                list_of_resources.append(info)
+        return list_of_resources
 
     def add_resource(self, resource):
-        with open("library.json", "w") as f:
+        with open("library.json", "a") as f:
             json.dump(resource, f, cls=Encoder, indent=4)
+            f.close()
+
+    def update_resource(self):
+        list_of_resources = []
+        with open("library.json", "r") as f:
+            data = json.load(f)
+
+        for resources in data:
+            list_of_resources.append(resources)
+        return list_of_resources
+
 
     def delete_resource(self, resource, name):
         with open("library.json", "r") as f:
             data = json.load(f)
 
+            count = 0
             for info in data[resource]:
-                if name == info["name"]:
-                    data[resource].pop(1)
+                if info.get("name") == name:
+                    data[resource].pop(count)
+                    print(data[resource])
+                count+=1
+
 
 
             
         
 
 class Data_Persistence:
-    pass
+    def data_rewrite():
+        pass
 
 #! Program Execution
 Program()
